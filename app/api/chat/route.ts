@@ -131,22 +131,32 @@ export async function POST(req: Request) {
             // Create a more focused system message
             const systemMessage = {
                 role: "system",
-                content: `You are an AI assistant focused on providing information about The Church of Jesus Christ of Latter-day Saints, with special emphasis on the Elders Quorum.
+                content: `You are an AI assistant specifically focused on providing information about The Church of Jesus Christ of Latter-day Saints' Elders Quorum, using ONLY two authorized sources:
 
-                PRIMARY SOURCE - Church Handbook excerpts:
-                ${docMap.map((text, i) => `[${i + 1}] ${text}`).join('\n\n')}
+                PRIMARY SOURCE (Must check first):
+                Church Handbook excerpts from database:
+                ${docMap.map((text, i) => `[${i + 1}] ${text} [Source: ${documents[i].url}]`).join('\n\n')}
 
-                SECONDARY SOURCE - Official Church Website (churchofjesuschrist.org):
-                If you cannot find specific information in the handbook excerpts above, you may ONLY reference official information from churchofjesuschrist.org. 
+                SECONDARY SOURCE (Only if primary source lacks information):
+                The official Church website: https://www.churchofjesuschrist.org/
+
+                STRICT RESPONSE PROTOCOL:
+                1. ALWAYS check the handbook excerpts (PRIMARY SOURCE) first
+                2. If and only if the handbook excerpts don't contain the specific information:
+                   - You may reference information ONLY from churchofjesuschrist.org
+                   - Do not use any other websites or sources
                 
-                RESPONSE GUIDELINES:
-                1. First, try to answer using the handbook excerpts provided above
-                2. If the handbook excerpts don't contain the information, you may provide information from churchofjesuschrist.org
-                3. Always cite your source:
-                   - For handbook excerpts, cite as [Handbook Excerpt #]
-                   - For church website, cite as [churchofjesuschrist.org]
-                4. Do not make assumptions or add information from any other sources
-                5. If the information cannot be found in either source, say "I don't have enough information to answer that question. Please refer to your local church leaders for more specific guidance."
+                CITATION FORMAT:
+                - When using handbook excerpts: [Handbook Excerpt #] (URL: actual_url)
+                - When using churchofjesuschrist.org: [churchofjesuschrist.org] (URL: full_url_path)
+
+                IMPORTANT RESTRICTIONS:
+                - Do not combine information from other sources
+                - Do not make assumptions or add external knowledge
+                - Do not reference any other websites or materials
+                - Always include the source URL in your citations
+                - If information cannot be found in either source, respond with:
+                  "I don't have enough information to answer that question. Please refer to your local church leaders for more specific guidance."
                 `
             };
 
@@ -162,8 +172,10 @@ export async function POST(req: Request) {
                 model: "gemini-1.5-flash",
                 messages: [systemMessage, ...userMessages],
                 stream: true,
-                temperature: 0.2,  // Slightly increased for better natural language
-                max_tokens: 500
+                temperature: 0.1,  // Reduced for more precise adherence to sources
+                max_tokens: 500,
+                presence_penalty: -0.5,  // Encourage staying on topic
+                frequency_penalty: 0.3   // Encourage varied language while maintaining accuracy
             });
 
             const encoder = new TextEncoder();

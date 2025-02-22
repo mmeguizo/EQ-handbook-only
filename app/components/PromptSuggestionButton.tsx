@@ -1,13 +1,22 @@
 interface PromptSuggestionButtonProps {
     suggestion: string;
-    onClick: (suggestion: string) => void;
+    onSuggestionClick: (suggestion: string) => void;
     className?: string;
 }
 
-export default function PromptSuggestionButton({ suggestion, onClick, className = '' }: PromptSuggestionButtonProps) {
-  return (
-    <button onClick={() => onClick(suggestion)} className={`prompt-suggestion-button ${className}`}>{suggestion}</button>
-  );
+export default function PromptSuggestionButton({ 
+    suggestion, 
+    onSuggestionClick, 
+    className = '' 
+}: PromptSuggestionButtonProps) {
+    return (
+        <button 
+            onClick={() => onSuggestionClick(suggestion)} 
+            className={`prompt-suggestion-button ${className}`}
+        >
+            {suggestion}
+        </button>
+    );
 }
 
 
