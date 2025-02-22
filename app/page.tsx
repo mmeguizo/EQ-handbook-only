@@ -6,6 +6,7 @@ import Bubble from "./components/Bubble";
 import LoadingBubble from "./components/LoadingBubble";
 import PromptSuggestionRow from "./components/PromptSuggestionRow";
 import { Message } from "@/interface/type";
+
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -83,6 +84,13 @@ export default function Home() {
     }
   };
 
+  const scrollToBottom = () => {
+    window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+    });
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setErrorMessage(null);
@@ -154,6 +162,8 @@ export default function Home() {
             }
           }
         }
+
+        setTimeout(scrollToBottom, 100);
       }
     } catch (error) {
       console.log("Error fetching AI response:", error);

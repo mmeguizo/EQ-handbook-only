@@ -135,7 +135,7 @@ export async function POST(req: Request) {
 
                 PRIMARY SOURCE (Must check first):
                 Church Handbook excerpts from database:
-                ${docMap.map((text, i) => `[${i + 1}] ${text} [Source: ${documents[i].url}]`).join('\n\n')}
+                ${docMap.map((text, i) => `[${i + 1}] ${text} (ref: ${documents[i].url})`).join('\n\n')}
 
                 SECONDARY SOURCE (Only if primary source lacks information):
                 The official Church website: https://www.churchofjesuschrist.org/
@@ -147,14 +147,20 @@ export async function POST(req: Request) {
                    - Do not use any other websites or sources
                 
                 CITATION FORMAT:
-                - When using handbook excerpts: [Handbook Excerpt #] (URL: actual_url)
-                - When using churchofjesuschrist.org: [churchofjesuschrist.org] (URL: full_url_path)
+                - When using handbook excerpts: [#] where # is the excerpt number
+                - When using churchofjesuschrist.org: [web]
+                
+                Always add a reference list at the end of your response in this format:
+                ---
+                References:
+                [#]: link
+                [web]: full_url_path
 
                 IMPORTANT RESTRICTIONS:
                 - Do not combine information from other sources
                 - Do not make assumptions or add external knowledge
                 - Do not reference any other websites or materials
-                - Always include the source URL in your citations
+                - Always include references at the end
                 - If information cannot be found in either source, respond with:
                   "I don't have enough information to answer that question. Please refer to your local church leaders for more specific guidance."
                 `
@@ -169,13 +175,11 @@ export async function POST(req: Request) {
             }));
 
             const completion = await openai.chat.completions.create({
-                model: "gemini-1.5-flash",
+                model: "gemini-1.5-pro",
                 messages: [systemMessage, ...userMessages],
                 stream: true,
-                temperature: 0.1,  // Reduced for more precise adherence to sources
-                max_tokens: 500,
-                presence_penalty: -0.5,  // Encourage staying on topic
-                frequency_penalty: 0.3   // Encourage varied language while maintaining accuracy
+                temperature: 0.1,
+                max_tokens: 500
             });
 
             const encoder = new TextEncoder();
