@@ -39,10 +39,13 @@ async function connectDB() {
 }
 
 // Add this type at the top with other imports
-type ErrorWithStatus = {
-    status: number;
-    message: string;
-};
+interface APIError {
+    status?: number;
+    message?: string;
+    response?: {
+        data?: any;
+    };
+}
 
 export async function POST(req: Request) {
     try {
@@ -175,12 +178,19 @@ export async function POST(req: Request) {
             }));
 
             const completion = await openai.chat.completions.create({
-                model: "gemini-1.5-pro",
+                model: "gemini-2.0-flash",
                 messages: [systemMessage, ...userMessages],
                 stream: true,
                 temperature: 0.1,
                 max_tokens: 500
             });
+
+            if (!completion) {
+                console.error("No completion response received");
+                return NextResponse.json({ 
+                    error: 'Failed to generate response' 
+                }, { status: 500 });
+            }
 
             const encoder = new TextEncoder();
             const stream = new ReadableStream({
@@ -229,7 +239,8 @@ export async function POST(req: Request) {
 
         } catch (embeddingError) {
             console.error("Embedding Error:", embeddingError);
-            if ((embeddingError as ErrorWithStatus).status === 429) {
+            const apiError = embeddingError as APIError;
+            if (apiError.status === 429) {
                 return NextResponse.json({
                     error: 'Rate limit exceeded. Please try again later.'
                 }, { status: 429 });
@@ -238,10 +249,20 @@ export async function POST(req: Request) {
         }
     } catch (error) {
         console.error("Outer Error:", error);
-        if ((error as ErrorWithStatus).status === 429) {
-            return NextResponse.json({ error: 'Rate limit exceeded. Please try again later.' }, { status: 429 });
+        const apiError = error as APIError;
+        
+        if (apiError.status === 429) {
+            return NextResponse.json({ 
+                error: 'Rate limit exceeded. Please try again later.' 
+            }, { status: 429 });
         }
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        
+        return NextResponse.json({ 
+            error: apiError.message || 'Failed to generate response',
+            details: apiError.response?.data || 'No additional details available'
+        }, { 
+            status: apiError.status || 500 
+        });
     }
 }
 
