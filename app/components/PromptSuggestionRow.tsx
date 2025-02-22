@@ -1,16 +1,15 @@
 import PromptSuggestionButton from "./PromptSuggestionButton";
 
-export default function PromptSuggestionRow({onPromptClick} : {onPromptClick: any}) {
-  const prompts = [
-    "What is the purpose of the Elders Quorum?",
-    "What is the purpose of the Aaronic Priesthood?",
-    "What is the purpose of the Melchizedek Priesthood?",
-   
-  ]
+interface PromptSuggestionRowProps {
+    suggestions: string[];
+    onSuggestionClick: (suggestion: string) => void;
+}
+
+export default function PromptSuggestionRow({ suggestions, onSuggestionClick }: PromptSuggestionRowProps) {
   return (
     <div className="prompt-suggestion-row">
-      {prompts.map((prompt, index) => (
-        <PromptSuggestionButton key={`suggestion-${index}`} text={prompt} onClick={() => onPromptClick(prompt)} />
+      {suggestions.map((prompt, index) => (
+        <PromptSuggestionButton key={`suggestion-${index}`} text={prompt} onClick={() => onSuggestionClick(prompt)} />
       ))}
     </div>
   );

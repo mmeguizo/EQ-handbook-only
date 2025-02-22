@@ -38,6 +38,12 @@ async function connectDB() {
     }
 }
 
+// Add this type at the top with other imports
+type ErrorWithStatus = {
+    status: number;
+    message: string;
+};
+
 export async function POST(req: Request) {
     try {
         console.log("Starting POST request handler");
@@ -207,7 +213,7 @@ export async function POST(req: Request) {
 
         } catch (embeddingError) {
             console.error("Embedding Error:", embeddingError);
-            if ((embeddingError as any).status === 429) {
+            if ((embeddingError as ErrorWithStatus).status === 429) {
                 return NextResponse.json({
                     error: 'Rate limit exceeded. Please try again later.'
                 }, { status: 429 });
@@ -216,7 +222,7 @@ export async function POST(req: Request) {
         }
     } catch (error) {
         console.error("Outer Error:", error);
-        if ((error as any).status === 429) {
+        if ((error as ErrorWithStatus).status === 429) {
             return NextResponse.json({ error: 'Rate limit exceeded. Please try again later.' }, { status: 429 });
         }
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
